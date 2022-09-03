@@ -1,6 +1,6 @@
-author 'Xakra <Discord:Xakra#8145>'
+author '<Discord:Xakra#8145:https://discord.gg/kmsqB6xQjH>'
 version '1.0'
-description 'xakra_building'
+description 'xakra_steal'
 
 fx_version "adamant"
 lua54 "on"

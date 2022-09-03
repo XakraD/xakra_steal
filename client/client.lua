@@ -5,6 +5,12 @@ local StealPrompts = GetRandomIntInRange(0, 0xffffff)
 local steal_source
 local active_menu = false
 
+local VorpCore = {}
+
+TriggerEvent('getCore',function(core)
+    VorpCore = core
+end)
+
 TriggerEvent("menuapi:getData", function(call)
     MenuData = call
 end)
@@ -26,30 +32,29 @@ end
 Citizen.CreateThread(function()
     StealPlayerPrompt()
 	while true do
-		Wait(4)
-        local hotgied, player_id = GetNearbyPlayer()
-        if Config.Hogtie then
-            if hotgied and not active_menu then
-                local label  = CreateVarString(10, 'LITERAL_STRING', 'Jugador')
-                PromptSetActiveGroupThisFrame(StealPrompt, label)
-                if PromptHasHoldModeCompleted(StealPrompt) then
-                    Wait(500) 
-                    steal_source = player_id
-                    TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal_source)
-                end
+		local t = 4
+        local steal, player_id, steal_ped = GetNearbyPlayer()
+        if player_id ~= 0 and steal and not active_menu then
+            local label  = CreateVarString(10, 'LITERAL_STRING', Config.Texts["MenuTitle"])
+            PromptSetActiveGroupThisFrame(StealPrompts,label)
+            if PromptHasHoldModeCompleted(StealPrompt) then
+                Wait(500) 
+                steal_source = player_id
+                TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal_source)
             end
+        else
+            t = 500
         end
-        if Config.Dead then
-            if IsEntityDead(player_id) then
-                local label  = CreateVarString(10, 'LITERAL_STRING', 'Jugador')
-                PromptSetActiveGroupThisFrame(StealPrompt, label)
-                if PromptHasHoldModeCompleted(StealPrompt) then
-                    Wait(500) 
-                    steal_source = player_id
-                    TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal_source)
-                end
-            end
-        end
+        Wait(t)
+    end
+end)
+
+RegisterNetEvent('xakra_steal:GetSourceSteal')
+AddEventHandler('xakra_steal:GetSourceSteal', function(obj, option)
+    if option == 'move' then
+        TriggerServerEvent('xakra_steal:MoveTosteal2', obj, steal_source)
+    elseif option == 'take' then
+        TriggerServerEvent('xakra_steal:TakeFromsteal2', obj, steal_source)
     end
 end)
 
@@ -87,7 +92,7 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
                 placeholder = Config.Texts['AmountMoney'], --placeholdername
                 style = 'block', --- dont touch
                 attributes = {
-                    inputHeader = Config.Texts['AmountMoney'], -- header
+                    inputHeader = Config.Texts['Money'], -- header
                     type = 'text', -- inputype text, number,date.etc if number comment out the pattern
                     pattern = '[0-9.]{1,10}', -- regular expression validated for only numbers '[0-9]', for letters only [A-Za-z]+   with charecter limit  [A-Za-z]{5,20}     with chareceter limit and numbers [A-Za-z0-9]{5,}
                     title = 'Wrong value', -- if input doesnt match show this message
@@ -96,14 +101,18 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
             }
         
             TriggerEvent('vorpinputs:advancedInput', json.encode(myInput),function(result)
-                if result then
-                    TriggerServerEvent('xakra_steal:StealMoney', steal_source, tonumber(result)) 
+                local number = tonumber(result)
+                if number <= money then
+                    TriggerServerEvent('xakra_steal:StealMoney', steal_source, number) 
                     MenuData.CloseAll()
+                else
+                    VorpCore.NotifyObjective(Config.Texts['TooMuchMoney'],4000)
                 end
             end)
         end
 
         if (data.current.value == 'inventory') then --translate here same as the config
+            TriggerServerEvent('xakra_steal:ReloadInventory', steal_source)
             TriggerServerEvent('xakra_steal:OpenInventory', steal_source)
         end
 
@@ -114,26 +123,33 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
     end)
 end)
 
-function GetStealSource()
-    return steal_source
-end
-
 function GetNearbyPlayer()
     local pcoords = GetEntityCoords(PlayerPedId())
-    local hotgied = false
-    local player_id
+    local steal = false
+    local steal_source
+    local steal_ped
     for i = 0, 255 do
         if NetworkIsPlayerActive(i) then
-            player_id = GetPlayerPed(GetPlayerFromServerId(i))
-            local player_coords = GetEntityCoords(player)
-            local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)
-            if Citizen.InvokeNative(0x3AA24CCC0D451379, player) and dist > 2 then
-                hotgied = true
-            -- table.insert(players, GetPlayerServerId(i))
+            steal_ped = GetPlayerPed(i)
+            local player_coords = GetEntityCoords(steal_ped)
+            local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)  
+            if steal_ped ~= PlayerPedId() then
+                if Config.StealHogtied then
+                    if Citizen.InvokeNative(0x3AA24CCC0D451379, steal_ped) and dist < 1.5 then
+                        steal_source = GetPlayerServerId(i)
+                        steal = true
+                    end
+                end
+                if Config.StealDead then
+                    if IsEntityDead(steal_ped) and dist < 1.5 then
+                        steal_source = GetPlayerServerId(i)
+                        steal = true
+                    end
+                end
             end
         end
     end
-    return hotgied, player_id
+    return steal, steal_source, steal_ped
 end
 
 AddEventHandler('onResourceStop', function(resourceName)
