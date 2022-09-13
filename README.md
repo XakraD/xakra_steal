@@ -14,8 +14,6 @@ In the Config file you can change:
 *   Disable/Enable stealing from dead players
 *   All script texts
 
-Note: To use features like untie player, you will have to target the player to disable the steal prompt.
-
 ## Instructions to incorporate script
 * Copy the script into a folder (to choose) from the 'resources' folder.
 * Add 'ensure xakra_steal' in the 'Resources.cfg' document
