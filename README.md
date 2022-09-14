@@ -12,6 +12,7 @@ In the Config file you can change:
 *   Key to steal
 *   Disable/Enable stealing from hogtied players
 *   Disable/Enable stealing from dead players
+*   Disable/Enable stealing from handcuffed players (You have to point a gun at the handcuffed player in order to steal)
 *   All script texts
 
 ## Instructions to incorporate script
