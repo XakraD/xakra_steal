@@ -3,7 +3,7 @@ Config = {}
 Config.KeySteal = 0x8CF90A9D
 
 Config.StealHogtied = true -- Steal from hogtied players
-Config.Cuffed = true  -- Steal from dead players
+Config.Cuffed = true  -- Steal from handcuffed players
 Config.StealDead = true  -- Steal from dead players
 
 Config.Texts = {
