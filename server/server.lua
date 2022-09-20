@@ -17,6 +17,7 @@ end)
 RegisterServerEvent('xakra_steal:StealMoney')
 AddEventHandler('xakra_steal:StealMoney', function(steal_source, amount)
     local _source = source
+    local _steal_source = steal_source
     local StealCharacter = VorpCore.getUser(steal_source).getUsedCharacter
     StealCharacter.removeCurrency(0, amount)
     local steal_money = StealCharacter.money - amount
@@ -25,6 +26,8 @@ AddEventHandler('xakra_steal:StealMoney', function(steal_source, amount)
     Character.addCurrency(0, amount)
 
     VorpCore.NotifyAvanced(_source,  Config.Texts['StealMoney']..amount.."$", "menu_textures", "log_gang_bag", "COLOR_PURE_WHITE", 2000)
+
+    VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookTakeSteal']..amount..'$ '..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
 
     TriggerClientEvent('xakra_steal:OpenMenu', _source, steal_money)
 end)
@@ -71,9 +74,10 @@ AddEventHandler('xakra_steal:ReloadInventory', function(steal_source, player_sou
         end
     end)
 
-    local data = {}
-    data.itemList = inventory
-    data.action = 'setSecondInventoryItems'
+    local data = {
+        itemList = inventory,
+        action = 'setSecondInventoryItems',
+    }
     TriggerClientEvent('vorp_inventory:ReloadstealInventory', _source, json.encode(data))
 end)
 
@@ -104,7 +108,9 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
         if canCarry then
             VorpInv.subItem(_source, decode_obj.item.name, decode_obj.number)
             VorpInv.addItem(_steal_source, decode_obj.item.name, decode_obj.number)
+            Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
+            VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookMoveSteal'].. decode_obj.number.. 'x '..decode_obj.item.label..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
         else
             VorpCore.NotifyObjective(_source, Config.Texts['NotStealCarryItems'],4000)
         end
@@ -114,7 +120,9 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
             if canCarry then
                 VorpInv.subWeapon(_source, decode_obj.item.id)
                 VorpInv.giveWeapon(_steal_source, decode_obj.item.id, 0)
+                Wait(100)
                 TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
+                VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookMoveSteal']..decode_obj.item.label..' '..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
             else
                 VorpCore.NotifyObjective(_source, Config.Texts['NotStealCarryWeapon'],4000)
             end
@@ -135,22 +143,34 @@ AddEventHandler('xakra_steal:TakeFromsteal', function(obj, steal_source)
 
     local decode_obj = json.decode(obj)
 
-    if decode_obj.type == 'item_standard' then
+    local inblacklist = false
+    for _, item in pairs(Config.ItemsBlackList) do 
+        if item == decode_obj.item.name then
+            inblacklist = true
+            VorpCore.NotifyObjective(_source, Config.Texts['ItemInBlackList'], 4000)
+        end
+    end
+
+    if decode_obj.type == 'item_standard' and not inblacklist then
         local canCarry = VorpInv.canCarryItem(_source, decode_obj.item.name, decode_obj.number)
         if canCarry then
             VorpInv.subItem(_steal_source, decode_obj.item.name, decode_obj.number)
             VorpInv.addItem(_source, decode_obj.item.name, decode_obj.number)
+            Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
+            VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookTakeSteal'].. decode_obj.number.. 'x '..decode_obj.item.label..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
         else
             VorpCore.NotifyObjective(_source, Config.Texts['NotCarryItems'],4000)
         end
-    elseif decode_obj.type == 'item_weapon' then
+    elseif decode_obj.type == 'item_weapon' and not inblacklist then
         VorpInv.canCarryWeapons(_source, 1, function(cb)
             local canCarry = cb
             if canCarry then
                 VorpInv.subWeapon(_steal_source, decode_obj.item.id)
                 VorpInv.giveWeapon(_source, decode_obj.item.id, 0)
+                Wait(100)
                 TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
+                VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookTakeSteal']..decode_obj.item.label..' '..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
             else
                 VorpCore.NotifyObjective(_source, Config.Texts['NotCarryWeapon'],4000)
             end

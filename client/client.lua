@@ -1,5 +1,4 @@
 local StealPrompt = {}
-local ActivePrompt = false
 
 local steal_source
 local active_menu = false
@@ -16,7 +15,7 @@ end)
 
 function StealPlayerPrompt(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str1 = Config.Texts['StrButton']	
+    local str1 = Config.Texts['StrPrompt']	
     StealPrompt[entity] = PromptRegisterBegin()
     PromptSetControlAction(StealPrompt[entity], Config.KeySteal)
     str = CreateVarString(10, 'LITERAL_STRING', str1)
@@ -31,22 +30,19 @@ end
 Citizen.CreateThread(function()
 	while true do
         Wait(100)
-        local steal, player_id, steal_ped = GetNearbyPlayer()
-        if player_id ~= 0 and steal then
-            if not ActivePrompt then
-                StealPlayerPrompt(steal_ped)
-                ActivePrompt = true
-            end
+        local data_steal = GetNearbyPlayer()
+        for _, steal in pairs(data_steal) do
+            if steal.steal_source ~= 0 and steal.steal_enable then
+                if not StealPrompt[steal.steal_ped] then
+                    StealPlayerPrompt(steal.steal_ped)
+                end
 
-            if PromptHasHoldModeCompleted(StealPrompt[steal_ped]) then
-                Wait(500) 
-                steal_source = player_id
-                TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal_source)
-            end
-        else
-            ActivePrompt = false
-            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])
-            if active_menu then
+                if PromptHasHoldModeCompleted(StealPrompt[steal.steal_ped]) then
+                    Wait(500) 
+                    steal_source = steal.steal_source
+                    TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal.steal_source)
+                end
+            elseif active_menu and steal_source == steal.steal_source then
                 ClearPedTasks(PlayerPedId())
                 TriggerServerEvent('xakra_steal:CloseInventory')
                 active_menu = false
@@ -68,6 +64,7 @@ end)
 RegisterNetEvent('xakra_steal:OpenMenu')
 AddEventHandler('xakra_steal:OpenMenu', function(money)
     MenuData.CloseAll()
+    ClearPedTasksImmediately(PlayerPedId())
     TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
     active_menu = true
 
@@ -75,12 +72,12 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
         {
             label = Config.Texts['Money']..' ['..money..'$]',
             value = 'money',
-            desc = 'Robar dinero'
+            desc = Config.Texts['DescStealMoney']
         },
         {
             label = Config.Texts['Inventory'],
             value = 'inventory',
-            desc = 'Buscar en el inventario'
+            desc = Config.Texts['DescStealInventory']
         },
     }
 
@@ -132,36 +129,50 @@ end)
 
 function GetNearbyPlayer()
     local pcoords = GetEntityCoords(PlayerPedId())
-    local steal = false
-    local steal_source
-    local steal_ped
-    for _, id in pairs(GetActivePlayers()) do
-        steal_ped = GetPlayerPed(id)
-        local player_coords = GetEntityCoords(steal_ped)
-        local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)  
-        
-        if steal_ped ~= PlayerPedId() and dist < 2.5 then
-            if Config.StealHogtied then
+
+    local data_steal = {}
+
+    for _, id in pairs(GetActivePlayers()) do 
+        local steal_enable = false
+        local steal_source
+
+        local steal_ped = GetPlayerPed(id)
+        if steal_ped ~= PlayerPedId() then
+            local player_coords = GetEntityCoords(steal_ped)
+            local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)  
+            
+            if Config.StealHogtied and dist < 2.5 then
                 if Citizen.InvokeNative(0x3AA24CCC0D451379, steal_ped) and not Citizen.InvokeNative(0xD453BB601D4A606E, steal_ped) then
                     steal_source = GetPlayerServerId(id)
-                    steal = true
+                    steal_enable = true
                 end
             end
-            if Config.Cuffed then
+            if Config.Cuffed and dist < 2.5 then
                 if IsPedCuffed(steal_ped) then
                     steal_source = GetPlayerServerId(id)
-                    steal = true
+                    steal_enable = true
                 end
             end
-            if Config.StealDead then
+            if Config.StealDead and dist < 2.5 then
                 if IsEntityDead(steal_ped) then
                     steal_source = GetPlayerServerId(id)
-                    steal = true
+                    steal_enable = true
                 end
+            end
+
+            data_steal[#data_steal+1] = { 
+                steal_enable = steal_enable,
+                steal_source = steal_source,
+                steal_ped = steal_ped,
+            }
+
+            if not steal_enable and StealPrompt[steal_ped] then
+                Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])   
+                StealPrompt[steal_ped] = nil
             end
         end
     end
-    return steal, steal_source, steal_ped
+    return data_steal
 end
 
 AddEventHandler('onResourceStop', function(resourceName)
