@@ -5,6 +5,8 @@ local active_menu = false
 
 local VorpCore = {}
 
+local stealing_players = {}
+
 TriggerEvent('getCore',function(core)
     VorpCore = core
 end)
@@ -52,12 +54,19 @@ Citizen.CreateThread(function()
     end
 end)
 
-RegisterNetEvent('xakra_steal:GetSourceSteal')
-AddEventHandler('xakra_steal:GetSourceSteal', function(obj, option)
-    if option == 'move' and steal_source then
-        TriggerServerEvent('xakra_steal:MoveTosteal', obj, steal_source)
-    elseif option == 'take' and steal_source then
-        TriggerServerEvent('xakra_steal:TakeFromsteal', obj, steal_source)
+RegisterNetEvent('xakra_steal:StealingPlayers')
+AddEventHandler('xakra_steal:StealingPlayers', function(source)
+    if source ~= steal_source then
+        table.insert(stealing_players, source)
+    end
+end)
+
+RegisterNetEvent('xakra_steal:DelStealingPlayers')
+AddEventHandler('xakra_steal:DelStealingPlayers', function(source)
+    for i, player_id in pairs(stealing_players) do
+        if player_id == source then
+            table.remove(stealing_players, i)
+        end
     end
 end)
 
@@ -124,7 +133,18 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
         menu.close()
         active_menu = false
         ClearPedTasks(PlayerPedId())
+        TriggerServerEvent('xakra_steal:CallDelStealingPlayers', steal_source)
+        steal_source = nil
     end)
+end)
+
+RegisterNetEvent('xakra_steal:GetSourceSteal')
+AddEventHandler('xakra_steal:GetSourceSteal', function(obj, option)
+    if option == 'move' and steal_source then
+        TriggerServerEvent('xakra_steal:MoveTosteal', obj, steal_source)
+    elseif option == 'take' and steal_source then
+        TriggerServerEvent('xakra_steal:TakeFromsteal', obj, steal_source)
+    end
 end)
 
 function GetNearbyPlayer()
@@ -134,42 +154,46 @@ function GetNearbyPlayer()
 
     for _, id in pairs(GetActivePlayers()) do 
         local steal_enable = false
-        local steal_source
-
+        local steal_source = GetPlayerServerId(id)
         local steal_ped = GetPlayerPed(id)
-        if steal_ped ~= PlayerPedId() then
+
+        local already_stealing = false
+        for i, source in pairs(stealing_players) do
+            if source == steal_source then
+                already_stealing = true
+            end
+        end
+
+        if steal_ped ~= PlayerPedId() and not already_stealing then
             local player_coords = GetEntityCoords(steal_ped)
             local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)  
             
             if Config.StealHogtied and dist < 2.5 then
                 if Citizen.InvokeNative(0x3AA24CCC0D451379, steal_ped) and not Citizen.InvokeNative(0xD453BB601D4A606E, steal_ped) then
-                    steal_source = GetPlayerServerId(id)
                     steal_enable = true
                 end
             end
             if Config.Cuffed and dist < 2.5 then
                 if IsPedCuffed(steal_ped) then
-                    steal_source = GetPlayerServerId(id)
                     steal_enable = true
                 end
             end
             if Config.StealDead and dist < 2.5 then
                 if IsEntityDead(steal_ped) then
-                    steal_source = GetPlayerServerId(id)
                     steal_enable = true
                 end
             end
+        end
 
-            data_steal[#data_steal+1] = { 
-                steal_enable = steal_enable,
-                steal_source = steal_source,
-                steal_ped = steal_ped,
-            }
-
-            if not steal_enable and StealPrompt[steal_ped] then
-                Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])   
-                StealPrompt[steal_ped] = nil
-            end
+        data_steal[#data_steal+1] = { 
+            steal_enable = steal_enable,
+            steal_source = steal_source,
+            steal_ped = steal_ped,
+        }
+        
+        if not steal_enable and StealPrompt[steal_ped] then
+            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])   
+            StealPrompt[steal_ped] = nil
         end
     end
     return data_steal

@@ -12,6 +12,12 @@ AddEventHandler('xakra_steal:MoneyOpenMenu', function(steal_source)
     local Character = VorpCore.getUser(steal_source).getUsedCharacter
 
     TriggerClientEvent('xakra_steal:OpenMenu', source, Character.money)
+    TriggerClientEvent('xakra_steal:StealingPlayers', -1, steal_source)
+end)
+
+RegisterServerEvent('xakra_steal:CallDelStealingPlayers')
+AddEventHandler('xakra_steal:CallDelStealingPlayers', function(steal_source)
+    TriggerClientEvent('xakra_steal:DelStealingPlayers', -1, steal_source)
 end)
 
 RegisterServerEvent('xakra_steal:StealMoney')
