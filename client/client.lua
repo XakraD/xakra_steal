@@ -124,9 +124,10 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
             end)
         end
 
-        if (data.current.value == 'inventory') then --translate here same as the config
+        if (data.current.value == 'inventory') then
             TriggerServerEvent('xakra_steal:ReloadInventory', steal_source)
             TriggerServerEvent('xakra_steal:OpenInventory', steal_source)
+            Wait(500)
         end
 
     end, function(data, menu)
