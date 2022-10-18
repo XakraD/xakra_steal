@@ -1,5 +1,7 @@
 Config = {}
 
+Config.Align = 'top-left' -- align to menu
+
 Config.KeySteal = 0xA1ABB953
 
 Config.StealHogtied = true -- Steal from hogtied players
