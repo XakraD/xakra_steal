@@ -193,7 +193,7 @@ function GetNearbyPlayer()
         }
         
         if not steal_enable and StealPrompt[steal_ped] then
-            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])   
+            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])    -- UiPromptDelete 
             StealPrompt[steal_ped] = nil
         end
     end
@@ -204,6 +204,11 @@ AddEventHandler('onResourceStop', function(resourceName)
 	if (GetCurrentResourceName() ~= resourceName) then
 	  return
 	end
+
+    for i, v in pairs(StealPrompt) do
+        Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[i]) -- UiPromptDelete 
+    end
+
     MenuData.CloseAll()
     if IsPedActiveInScenario(PlayerPedId()) then
         ClearPedTasksImmediately(PlayerPedId())
