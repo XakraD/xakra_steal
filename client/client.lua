@@ -205,8 +205,8 @@ AddEventHandler('onResourceStop', function(resourceName)
 	  return
 	end
 
-    for i, v in pairs(StealPrompt) do
-        Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[i]) -- UiPromptDelete 
+    for _, v in pairs(StealPrompt) do
+        Citizen.InvokeNative(0x00EDE88D4D13CF59, v) -- UiPromptDelete 
     end
 
     MenuData.CloseAll()
