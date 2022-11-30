@@ -109,7 +109,7 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
 
     local decode_obj = json.decode(obj)
 
-    if decode_obj.type == 'item_standard' then
+    if decode_obj.type == 'item_standard' and tonumber(decode_obj.number) > 0 then
         local canCarry = VorpInv.canCarryItem(_steal_source, decode_obj.item.name, decode_obj.number)
         if canCarry then
             VorpInv.subItem(_source, decode_obj.item.name, decode_obj.number)
@@ -157,7 +157,7 @@ AddEventHandler('xakra_steal:TakeFromsteal', function(obj, steal_source)
         end
     end
 
-    if decode_obj.type == 'item_standard' and not inblacklist then
+    if decode_obj.type == 'item_standard' and not inblacklist and tonumber(decode_obj.number) > 0 then
         local canCarry = VorpInv.canCarryItem(_source, decode_obj.item.name, decode_obj.number)
         if canCarry then
             VorpInv.subItem(_steal_source, decode_obj.item.name, decode_obj.number)
