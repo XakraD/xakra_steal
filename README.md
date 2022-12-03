@@ -6,7 +6,7 @@
 - [menuapi](https://github.com/outsider31000/menuapi)
 
 ## Description
-With this script it will allow players to steal money, items and weapons from the inventory of other hogtied up or dead players.
+With this script it will allow players to steal money, items (metadata support) and weapons from the inventory of other hogtied up or dead players.
 
 In the Config file you can change:
 *   Key to steal

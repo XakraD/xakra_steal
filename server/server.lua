@@ -57,11 +57,12 @@ AddEventHandler('xakra_steal:ReloadInventory', function(steal_source, player_sou
     TriggerEvent('vorpCore:getUserInventory', tonumber(_steal_source), function(getInventory)
         for _, item in pairs (getInventory) do
             local data_item = {
-                ['count'] = item.count,
-                ['name'] = item.name,
-                ['limit'] = item.limit,
-                ['type'] = item.type,
-                ['label'] = item.label
+                count = item.count,
+                name = item.name,
+                limit = item.limit,
+                type = item.type,
+                label = item.label,
+                metadata = item.metadata,
             }
             table.insert(inventory, data_item) 
         end
@@ -69,12 +70,12 @@ AddEventHandler('xakra_steal:ReloadInventory', function(steal_source, player_sou
     TriggerEvent('vorpCore:getUserWeapons', tonumber(_steal_source), function(getUserWeapons)
         for _, weapon in pairs (getUserWeapons) do
             local data_weapon = {
-                ['count'] = -1,
-                ['name'] = weapon.name,
-                ['limit'] = -1,
-                ['type'] = 'item_weapon',
-                ['label'] = '',
-                ['id'] = weapon.id
+                count = -1,
+                name = weapon.name,
+                limit = -1,
+                type = 'item_weapon',
+                label = '',
+                id = weapon.id,
             }
             table.insert(inventory, data_weapon)
         end
@@ -112,8 +113,8 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
     if decode_obj.type == 'item_standard' and tonumber(decode_obj.number) > 0 and tonumber(decode_obj.number) <= tonumber(decode_obj.item.count) then
         local canCarry = VorpInv.canCarryItem(_steal_source, decode_obj.item.name, decode_obj.number)
         if canCarry then
-            VorpInv.subItem(_source, decode_obj.item.name, decode_obj.number)
-            VorpInv.addItem(_steal_source, decode_obj.item.name, decode_obj.number)
+            VorpInv.subItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
+            VorpInv.addItem(_steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
             VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookMoveSteal'].. decode_obj.number.. 'x '..decode_obj.item.label..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
@@ -160,8 +161,8 @@ AddEventHandler('xakra_steal:TakeFromsteal', function(obj, steal_source)
     if decode_obj.type == 'item_standard' and not inblacklist and tonumber(decode_obj.number) > 0 and tonumber(decode_obj.number) <= tonumber(decode_obj.item.count) then
         local canCarry = VorpInv.canCarryItem(_source, decode_obj.item.name, decode_obj.number)
         if canCarry then
-            VorpInv.subItem(_steal_source, decode_obj.item.name, decode_obj.number)
-            VorpInv.addItem(_source, decode_obj.item.name, decode_obj.number)
+            VorpInv.subItem(_steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
+            VorpInv.addItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
             VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook, Config.Texts['WebHookTakeSteal'].. decode_obj.number.. 'x '..decode_obj.item.label..Config.Texts['WebHookPlayer']..GetPlayerName(_steal_source))
