@@ -169,12 +169,12 @@ function GetNearbyPlayer()
             local player_coords = GetEntityCoords(steal_ped)
             local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)  
             
-            if Config.StealHogtied and dist < 2.5 then
+            if Config.StealHogtied and dist < 2.5 and not IsEntityDead(steal_ped) then
                 if Citizen.InvokeNative(0x3AA24CCC0D451379, steal_ped) and not Citizen.InvokeNative(0xD453BB601D4A606E, steal_ped) then
                     steal_enable = true
                 end
             end
-            if Config.Cuffed and dist < 2.5 then
+            if Config.Cuffed and dist < 2.5 and not IsEntityDead(steal_ped) then
                 if IsPedCuffed(steal_ped) then
                     steal_enable = true
                 end
