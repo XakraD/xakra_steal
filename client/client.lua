@@ -115,7 +115,7 @@ AddEventHandler('xakra_steal:OpenMenu', function(money)
         
             TriggerEvent('vorpinputs:advancedInput', json.encode(myInput),function(result)
                 local number = tonumber(result)
-                if number <= money then
+                if number and number <= money then
                     TriggerServerEvent('xakra_steal:StealMoney', steal_source, number) 
                     MenuData.CloseAll()
                 else
