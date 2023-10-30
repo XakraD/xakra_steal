@@ -124,7 +124,7 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
     elseif decode_obj.type == 'item_weapon' then
         local canCarry = exports.vorp_inventory:canCarryWeapons(_steal_source, 1)
         if canCarry then
-            exports.vorp_inventory:subWeapon(_source, decode_obj.item.id)
+            -- exports.vorp_inventory:subWeapon(_source, decode_obj.item.id)
             exports.vorp_inventory:giveWeapon(_steal_source, decode_obj.item.id, _source)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
@@ -172,7 +172,7 @@ AddEventHandler('xakra_steal:TakeFromsteal', function(obj, steal_source)
     elseif decode_obj.type == 'item_weapon' and not inblacklist then
         local canCarry = exports.vorp_inventory:canCarryWeapons(_source, 1)
         if canCarry then
-            exports.vorp_inventory:subWeapon(_steal_source, decode_obj.item.id)
+            -- exports.vorp_inventory:subWeapon(_steal_source, decode_obj.item.id)
             exports.vorp_inventory:giveWeapon(_source, decode_obj.item.id, _steal_source)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
