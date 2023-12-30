@@ -71,10 +71,14 @@ AddEventHandler('xakra_steal:DelStealingPlayers', function(source)
 end)
 
 RegisterNetEvent('xakra_steal:OpenMenu')
-AddEventHandler('xakra_steal:OpenMenu', function(money)
+AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
     MenuData.CloseAll()
-    ClearPedTasksImmediately(PlayerPedId())
-    TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
+    
+    if scenario then
+        ClearPedTasksImmediately(PlayerPedId())
+        TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
+    end
+
     active_menu = true
 
     local elements = {
@@ -210,6 +214,7 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 
     MenuData.CloseAll()
+    
     if IsPedActiveInScenario(PlayerPedId()) then
         ClearPedTasksImmediately(PlayerPedId())
     end
