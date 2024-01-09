@@ -1,53 +1,41 @@
 Config = {}
 
-Config.Align = 'top-left' -- align to menu
+-- Menu alignment setting
+Config.Align = 'top-left' -- Sets the alignment of the menu on the screen
 
-Config.KeySteal = 0xA1ABB953
+-- Language setting (Options: English, Portuguese_BR, Spanish)
+Config.Lang = 'English'
 
-Config.StealHogtied = true -- Steal from hogtied players
-Config.Cuffed = true  -- Steal from handcuffed players
-Config.StealDead = true  -- Steal from dead players
+-- Keybindings
+Config.KeySteal = 0xA1ABB953      -- Key binding for steal action [G]
+Config.HandsUpButton = 0x8CC9CD42 -- Key binding for hands up [X]
 
+-- Stealing conditions
+Config.StealHogtied = true -- Allow stealing from hogtied players
+Config.Cuffed = true       -- Allow stealing from handcuffed players
+Config.StealHandsUp = true -- Allow stealing from players with their hands up
+Config.StealDead = true    -- Allow stealing from dead players
+
+-- Webhook URL for logging
 Config.Webhook = ''
 
+-- Requirements for stealing (e.g., minimum number of police)
 Config.RequiredJobs = {
-    Amount = 2,
+    Amount = 2,  -- Minimum number of police required
     Jobs = {
-        'police',
-        'sheriff',
+        'police' -- Job identifier for police
     },
 }
 
-Config.Limit = {    -- Limit how much a player can be robbed until the server is restarted or the script is restarted
-    Money = 10, -- amount limit or false
-    Weapons = 1,    -- amount limit or false
-    Items = 10, -- amount limit or false
+-- Limits on the amount that can be stolen
+Config.Limit = {
+    Money = 10,  -- Max amount of money that can be stolen (set to false for no limit)
+    Weapons = 1, -- Max number of weapons that can be stolen (set to false for no limit)
+    Items = 10,  -- Max number of items that can be stolen (set to false for no limit)
 }
 
-Config.ItemsBlackList = { -- Names of items or weapons that cannot be stolen
-    'water',
-    'WEAPON_MELEE_KNIFE',
-}
-
-Config.Texts = {
-    StrPrompt = 'Robar',
-    NotJobs = 'No hay suficientes policías',
-    Limit = 'Solo puedes robar:~t6~',
-    DescStealMoney = 'Robar dinero',
-    MenuTitle = 'Jugador',
-    MenuSubtext = 'Eliga una opción',
-    Confirm = 'Confirmar',
-    AmountMoney = 'Cantidad',
-    Money = 'Dinero',
-    Inventory = 'Inventario',
-    DescStealInventory = 'Buscar en el inventario',
-    NotStealCarryItems = 'El jugador no puede llevar mas items',
-    NotStealCarryWeapon = 'El jugador no puede llevar mas armas',
-    NotCarryItems = 'No puedes llevar mas items.',
-    TooMuchMoney = 'No puedes robar mas de lo que tiene el jugador',
-    StealMoney = 'Has robado:~t6~',
-    ItemInBlackList = 'No puedes robar este objeto.',
-    WebHookTakeSteal = 'Ha robado: ',
-    WebHookMoveSteal = 'Ha entregado: ',
-    WebHookPlayer = ', al jugador: ',
+-- Blacklist of items and weapons that cannot be stolen
+Config.ItemsBlackList = {
+    'water',              -- Example item
+    'WEAPON_MELEE_KNIFE', -- Example weapon
 }

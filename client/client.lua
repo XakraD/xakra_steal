@@ -7,7 +7,7 @@ local VorpCore = {}
 
 local stealing_players = {}
 
-TriggerEvent('getCore',function(core)
+TriggerEvent('getCore', function(core)
     VorpCore = core
 end)
 
@@ -17,7 +17,7 @@ end)
 
 function StealPlayerPrompt(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str1 = Config.Texts['StrPrompt']	
+    local str1 = Config.Texts['StrPrompt']
     StealPrompt[entity] = PromptRegisterBegin()
     PromptSetControlAction(StealPrompt[entity], Config.KeySteal)
     str = CreateVarString(10, 'LITERAL_STRING', str1)
@@ -30,7 +30,7 @@ function StealPlayerPrompt(entity)
 end
 
 Citizen.CreateThread(function()
-	while true do
+    while true do
         Wait(100)
         local data_steal = GetNearbyPlayer()
         for _, steal in pairs(data_steal) do
@@ -40,7 +40,7 @@ Citizen.CreateThread(function()
                 end
 
                 if PromptHasHoldModeCompleted(StealPrompt[steal.steal_ped]) then
-                    Wait(500) 
+                    Wait(500)
                     steal_source = steal.steal_source
                     TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal.steal_source)
                 end
@@ -53,6 +53,32 @@ Citizen.CreateThread(function()
         end
     end
 end)
+
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        if (IsControlJustPressed(0, Config.HandsUpButton)) and IsInputDisabled(0) then
+            local ped = PlayerPedId()
+            if (DoesEntityExist(ped) and not IsEntityDead(ped)) then
+                RequestAnimDict("script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs")
+                while (not HasAnimDictLoaded("script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs")) do
+                    Citizen.Wait(100)
+                end
+                if IsEntityPlayingAnim(ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs", "handsup_register_owner", 3) then
+                    SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true) -- unarm player
+                    DisablePlayerFiring(ped, true)
+                    ClearPedSecondaryTask(ped)
+                else
+                    SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true) -- unarm player
+                    DisablePlayerFiring(ped, true)
+                    TaskPlayAnim(ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs",
+                        "handsup_register_owner", 2.0, -1.0, 120000, 31, 0, true, 0, false, 0, false)
+                end
+            end
+        end
+    end
+end)
+
 
 RegisterNetEvent('xakra_steal:StealingPlayers')
 AddEventHandler('xakra_steal:StealingPlayers', function(source)
@@ -73,7 +99,7 @@ end)
 RegisterNetEvent('xakra_steal:OpenMenu')
 AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
     MenuData.CloseAll()
-    
+
     if scenario then
         ClearPedTasksImmediately(PlayerPedId())
         TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
@@ -83,7 +109,7 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
 
     local elements = {
         {
-            label = Config.Texts['Money']..' ['..money..'$]',
+            label = Config.Texts['Money'] .. ' [' .. money .. '$]',
             value = 'money',
             desc = Config.Texts['DescStealMoney']
         },
@@ -101,29 +127,29 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
         elements = elements
 
     }, function(data, menu)
-        if (data.current.value == 'money') then --translate here same as the config
+        if (data.current.value == 'money') then                                      --translate here same as the config
             local myInput = {
-                type = 'enableinput', -- dont touch
-                inputType = 'input', -- or text area for sending messages
-                button = Config.Texts['Confirm'], -- button name
-                placeholder = Config.Texts['AmountMoney'], --placeholdername
-                style = 'block', --- dont touch
+                type = 'enableinput',                                                -- dont touch
+                inputType = 'input',                                                 -- or text area for sending messages
+                button = Config.Texts['Confirm'],                                    -- button name
+                placeholder = Config.Texts['AmountMoney'],                           --placeholdername
+                style = 'block',                                                     --- dont touch
                 attributes = {
-                    inputHeader = Config.Texts['Money'], -- header
-                    type = 'text', -- inputype text, number,date.etc if number comment out the pattern
-                    pattern = '[0-9.]{1,10}', -- regular expression validated for only numbers '[0-9]', for letters only [A-Za-z]+   with charecter limit  [A-Za-z]{5,20}     with chareceter limit and numbers [A-Za-z0-9]{5,}
-                    title = 'Wrong value', -- if input doesnt match show this message
+                    inputHeader = Config.Texts['Money'],                             -- header
+                    type = 'text',                                                   -- inputype text, number,date.etc if number comment out the pattern
+                    pattern = '[0-9.]{1,10}',                                        -- regular expression validated for only numbers '[0-9]', for letters only [A-Za-z]+   with charecter limit  [A-Za-z]{5,20}     with chareceter limit and numbers [A-Za-z0-9]{5,}
+                    title = 'Wrong value',                                           -- if input doesnt match show this message
                     style = 'border-radius: 10px; background-color: ; border:none;', -- style  the inptup
                 }
             }
-        
-            TriggerEvent('vorpinputs:advancedInput', json.encode(myInput),function(result)
+
+            TriggerEvent('vorpinputs:advancedInput', json.encode(myInput), function(result)
                 local number = tonumber(result)
                 if number and number <= money then
-                    TriggerServerEvent('xakra_steal:StealMoney', steal_source, number) 
+                    TriggerServerEvent('xakra_steal:StealMoney', steal_source, number)
                     MenuData.CloseAll()
                 else
-                    VorpCore.NotifyObjective(Config.Texts['TooMuchMoney'],4000)
+                    VorpCore.NotifyObjective(Config.Texts['TooMuchMoney'], 4000)
                 end
             end)
         end
@@ -133,7 +159,6 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
             TriggerServerEvent('xakra_steal:OpenInventory', steal_source)
             Wait(500)
         end
-
     end, function(data, menu)
         menu.close()
         active_menu = false
@@ -157,7 +182,7 @@ function GetNearbyPlayer()
 
     local data_steal = {}
 
-    for _, id in pairs(GetActivePlayers()) do 
+    for _, id in pairs(GetActivePlayers()) do
         local steal_enable = false
         local steal_source = GetPlayerServerId(id)
         local steal_ped = GetPlayerPed(id)
@@ -171,8 +196,8 @@ function GetNearbyPlayer()
 
         if steal_ped ~= PlayerPedId() and not already_stealing then
             local player_coords = GetEntityCoords(steal_ped)
-            local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)  
-            
+            local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)
+
             if Config.StealHogtied and dist < 2.5 and not IsEntityDead(steal_ped) then
                 if Citizen.InvokeNative(0x3AA24CCC0D451379, steal_ped) and not Citizen.InvokeNative(0xD453BB601D4A606E, steal_ped) then
                     steal_enable = true
@@ -188,16 +213,24 @@ function GetNearbyPlayer()
                     steal_enable = true
                 end
             end
+
+            -- Verifica se o personagem está com as mãos levantadas
+            local isHandsUp = IsEntityPlayingAnim(steal_ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs",
+                "handsup_register_owner", 3)
+
+            if Config.StealHandsUp and dist < 2.5 and not IsEntityDead(steal_ped) and isHandsUp then
+                steal_enable = true
+            end
         end
 
-        data_steal[#data_steal+1] = { 
+        data_steal[#data_steal + 1] = {
             steal_enable = steal_enable,
             steal_source = steal_source,
             steal_ped = steal_ped,
         }
-        
+
         if not steal_enable and StealPrompt[steal_ped] then
-            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped])    -- UiPromptDelete 
+            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped]) -- UiPromptDelete
             StealPrompt[steal_ped] = nil
         end
     end
@@ -205,16 +238,16 @@ function GetNearbyPlayer()
 end
 
 AddEventHandler('onResourceStop', function(resourceName)
-	if (GetCurrentResourceName() ~= resourceName) then
-	  return
-	end
+    if (GetCurrentResourceName() ~= resourceName) then
+        return
+    end
 
     for _, v in pairs(StealPrompt) do
-        Citizen.InvokeNative(0x00EDE88D4D13CF59, v) -- UiPromptDelete 
+        Citizen.InvokeNative(0x00EDE88D4D13CF59, v) -- UiPromptDelete
     end
 
     MenuData.CloseAll()
-    
+
     if IsPedActiveInScenario(PlayerPedId()) then
         ClearPedTasksImmediately(PlayerPedId())
     end
