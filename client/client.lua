@@ -7,6 +7,8 @@ local VorpCore = {}
 
 local stealing_players = {}
 
+local T = Translation.Langs[Config.Lang]
+
 TriggerEvent('getCore', function(core)
     VorpCore = core
 end)
@@ -17,7 +19,7 @@ end)
 
 function StealPlayerPrompt(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str1 = Config.Texts['StrPrompt']
+    local str1 = T.StrPrompt
     StealPrompt[entity] = PromptRegisterBegin()
     PromptSetControlAction(StealPrompt[entity], Config.KeySteal)
     str = CreateVarString(10, 'LITERAL_STRING', str1)
@@ -71,8 +73,7 @@ Citizen.CreateThread(function()
                 else
                     SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true) -- unarm player
                     DisablePlayerFiring(ped, true)
-                    TaskPlayAnim(ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs",
-                        "handsup_register_owner", 2.0, -1.0, 120000, 31, 0, true, 0, false, 0, false)
+                    TaskPlayAnim(ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs", "handsup_register_owner", 2.0, -1.0, 120000, 31, 0, true, 0, false, 0, false)
                 end
             end
         end
@@ -109,20 +110,20 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
 
     local elements = {
         {
-            label = Config.Texts['Money'] .. ' [' .. money .. '$]',
+            label = T.Money .. ' [' .. money .. '$]',
             value = 'money',
-            desc = Config.Texts['DescStealMoney']
+            desc = T.DescStealMoney
         },
         {
-            label = Config.Texts['Inventory'],
+            label = T.Inventory,
             value = 'inventory',
-            desc = Config.Texts['DescStealInventory']
+            desc = T.DescStealInventory
         },
     }
 
     MenuData.Open('default', GetCurrentResourceName(), 'menuapi', {
-        title = Config.Texts['MenuTitle'],
-        subtext = Config.Texts['MenuSubtext'],
+        title = T.MenuTitle,
+        subtext = T.MenuSubtext,
         align = Config.Align,
         elements = elements
 
@@ -131,11 +132,11 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
             local myInput = {
                 type = 'enableinput',                                                -- dont touch
                 inputType = 'input',                                                 -- or text area for sending messages
-                button = Config.Texts['Confirm'],                                    -- button name
-                placeholder = Config.Texts['AmountMoney'],                           --placeholdername
+                button = T.Confirm,                                    -- button name
+                placeholder = T.AmountMoney,                           --placeholdername
                 style = 'block',                                                     --- dont touch
                 attributes = {
-                    inputHeader = Config.Texts['Money'],                             -- header
+                    inputHeader = T.Money,                             -- header
                     type = 'text',                                                   -- inputype text, number,date.etc if number comment out the pattern
                     pattern = '[0-9.]{1,10}',                                        -- regular expression validated for only numbers '[0-9]', for letters only [A-Za-z]+   with charecter limit  [A-Za-z]{5,20}     with chareceter limit and numbers [A-Za-z0-9]{5,}
                     title = 'Wrong value',                                           -- if input doesnt match show this message
@@ -149,7 +150,7 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
                     TriggerServerEvent('xakra_steal:StealMoney', steal_source, number)
                     MenuData.CloseAll()
                 else
-                    VorpCore.NotifyObjective(Config.Texts['TooMuchMoney'], 4000)
+                    VorpCore.NotifyObjective(T.TooMuchMoney, 4000)
                 end
             end)
         end

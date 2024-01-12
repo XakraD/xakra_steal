@@ -50,11 +50,9 @@ AddEventHandler('xakra_steal:StealMoney', function(steal_source, amount)
         local Character = VorpCore.getUser(_source).getUsedCharacter
         Character.addCurrency(0, amount)
 
-        VorpCore.NotifyAvanced(_source, T.StealMoney .. ' ' .. amount .. "$", "menu_textures", "log_gang_bag",
-            "COLOR_PURE_WHITE", 2000)
+        VorpCore.NotifyAvanced(_source, T.StealMoney .. ' ' .. amount .. "$", "menu_textures", "log_gang_bag", "COLOR_PURE_WHITE", 2000)
 
-        VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook,
-            T.WebHookTakeSteal .. amount .. " $ " .. T.WebHookPlayer .. GetPlayerName(_steal_source))
+        DiscordLog(string.format(T.WebhooksLang.DiscordStealMoney, amount, GetPlayerName(_source), GetPlayerName(_steal_source)))
     end
 
     TriggerClientEvent('xakra_steal:OpenMenu', _source, steal_money)
@@ -137,14 +135,10 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
         local canCarry = exports.vorp_inventory:canCarryItem(_steal_source, decode_obj.item.name, decode_obj.number)
         if canCarrys and canCarry then
             exports.vorp_inventory:subItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
-            exports.vorp_inventory:addItem(_steal_source, decode_obj.item.name, decode_obj.number,
-                decode_obj.item.metadata)
+            exports.vorp_inventory:addItem(_steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
-            VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook,
-                T.WebHookMoveSteal ..
-                decode_obj.number ..
-                'x ' .. decode_obj.item.label .. " " .. T.WebHookPlayer .. GetPlayerName(_steal_source))
+            DiscordLog(string.format(T.WebhooksLang.DiscordMoveItem, decode_obj.number, decode_obj.item.label, GetPlayerName(_source), GetPlayerName(_steal_source)))
         else
             VorpCore.NotifyObjective(_source, T.NotStealCarryItems, 4000)
         end
@@ -155,9 +149,7 @@ AddEventHandler('xakra_steal:MoveTosteal', function(obj, steal_source)
             exports.vorp_inventory:giveWeapon(_steal_source, decode_obj.item.id, _source)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
-            VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook,
-                T.WebHookMoveSteal ..
-                decode_obj.item.label .. " " .. T.WebHookPlayer .. GetPlayerName(_steal_source))
+            DiscordLog(string.format(T.WebhooksLang.DiscordMoveWeapon, decode_obj.item.label, GetPlayerName(_source), GetPlayerName(_steal_source)))
         else
             VorpCore.NotifyObjective(_source, T.NotStealCarryWeapon, 4000)
         end
@@ -194,15 +186,11 @@ AddEventHandler('xakra_steal:TakeFromsteal', function(obj, steal_source)
         local canCarrys = exports.vorp_inventory:canCarryItems(_source, decode_obj.number)
         local canCarry = exports.vorp_inventory:canCarryItem(_source, decode_obj.item.name, decode_obj.number)
         if canCarrys and canCarry then
-            exports.vorp_inventory:subItem(_steal_source, decode_obj.item.name, decode_obj.number,
-                decode_obj.item.metadata)
+            exports.vorp_inventory:subItem(_steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             exports.vorp_inventory:addItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
-            VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook,
-                T.WebHookTakeSteal ..
-                decode_obj.number ..
-                'x ' .. decode_obj.item.label .. " " .. T.WebHookPlayer .. GetPlayerName(_steal_source))
+            DiscordLog(string.format(T.WebhooksLang.DiscordStealItem, decode_obj.number, decode_obj.item.label, GetPlayerName(_source), GetPlayerName(_steal_source)))
         else
             VorpCore.NotifyObjective(_source, T.NotCarryItems, 4000)
         end
@@ -217,9 +205,7 @@ AddEventHandler('xakra_steal:TakeFromsteal', function(obj, steal_source)
             exports.vorp_inventory:giveWeapon(_source, decode_obj.item.id, _steal_source)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', _steal_source, _source)
-            VorpCore.AddWebhook(GetPlayerName(_source), Config.Webhook,
-                T.WebHookTakeSteal ..
-                decode_obj.item.label .. " " .. T.WebHookPlayer .. GetPlayerName(_steal_source))
+            DiscordLog(string.format(T.WebhooksLang.DiscordStealWeapon, decode_obj.item.label, GetPlayerName(_source), GetPlayerName(_steal_source)))
         else
             VorpCore.NotifyObjective(_source, T.NotCarryWeapon, 4000)
         end
@@ -247,9 +233,8 @@ function CheckLimit(source, steal_source, Limit, amount)
         end
 
         if (PlayersLimit[Character.charIdentifier][Limit] + amount) > Config.Limit[Limit] then
-            VorpCore.NotifyObjective(source,
-                T.Limit .. ' ' .. PlayersLimit[Character.charIdentifier][Limit] .. '/' .. Config.Limit[Limit],
-                4000)
+            VorpCore.NotifyObjective(source, T.Limit .. ' ' .. PlayersLimit[Character.charIdentifier][Limit] .. '/' .. Config.Limit[Limit], 4000)
+            DiscordLog(string.format(T.WebhooksLang.DiscordStealLimit, Limit, GetPlayerName(source), PlayersLimit[Character.charIdentifier][Limit], Config.Limit[Limit]))
             return false
         end
 
@@ -257,4 +242,19 @@ function CheckLimit(source, steal_source, Limit, amount)
 
         return true
     end
+end
+
+function DiscordLog(message)
+	if Config.Webhook.UseWebhook then
+		VorpCore.AddWebhook(
+			Config.Webhook.WebhookTitle,
+			Config.Webhook.WebhookUrl,
+			message,
+			Config.Webhook.WebhookColor,
+			Config.Webhook.WebhookName,
+			Config.Webhook.WebhookLogo,
+			Config.Webhook.WebhookLogoFooter,
+			Config.Webhook.WebhookAvatar
+		)
+	end
 end
