@@ -103,6 +103,7 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
 
     if scenario then
         ClearPedTasksImmediately(PlayerPedId())
+        SetCurrentPedWeapon(PlayerPedId(), joaat('WEAPON_UNARMED'), true, 0, false, false)
         TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
     end
 

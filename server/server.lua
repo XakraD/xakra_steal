@@ -43,10 +43,12 @@ AddEventHandler('xakra_steal:StealMoney', function(steal_source, amount)
     local _source = source
     local _steal_source = steal_source
     local StealCharacter = VorpCore.getUser(steal_source).getUsedCharacter
-    StealCharacter.removeCurrency(0, amount)
-    local steal_money = StealCharacter.money - amount
+    local steal_money = StealCharacter.money
 
     if CheckLimit(_source, _steal_source, 'Money', amount) then
+        StealCharacter.removeCurrency(0, amount)
+        steal_money = StealCharacter.money - amount
+
         local Character = VorpCore.getUser(_source).getUsedCharacter
         Character.addCurrency(0, amount)
 
