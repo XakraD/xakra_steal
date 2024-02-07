@@ -244,6 +244,8 @@ function CheckLimit(source, steal_source, Limit, amount)
 
         return true
     end
+
+    return true
 end
 
 function DiscordLog(message)
