@@ -162,5 +162,32 @@ Translation.Langs = {
       DiscordStealWeapon = "🔫 Arma Robada: %s | Ladrón: %s | Víctima: %s",
       DiscordStealLimit = "⚠️ Límite de Robo Alcanzado: %s | Ladrón: %s | Límite: %s",
     }
+  },
+  Italian = {
+    StrPrompt = 'Rubare',
+    NotJobs = 'Non ci sono abbastanza poliziotti',
+    Limit = 'Puoi rubare solo:~t6~',
+    DescStealMoney = 'Ruba denaro',
+    MenuTitle = 'Player',
+    MenuSubtext = 'Scegli un opzione',
+    Confirm = 'Conferma',
+    AmountMoney = 'Quantità',
+    Money = 'Denaro',
+    Inventory = 'Inventario',
+    DescStealInventory = 'Cerca nell\'inventario',
+    NotStealCarryItems = 'Il giocatore non può trasportare altri oggetti',
+    NotStealCarryWeapon = 'Il giocatore non può portare altre armi.',
+    NotCarryItems = 'Non puoi portare altri oggetti.',
+    TooMuchMoney = 'Non puoi rubare più di quello che ha il giocatore.',
+    StealMoney = 'Hai preso: ',
+    ItemInBlackList = 'Non puoi prendere questo oggetto.',
+    WebhooksLang = {
+      DiscordStealMoney = "💰 Denaro Rubato: %s $ | Ladro: %s | Vittima: %s",
+      DiscordMoveItem = "🎒 Oggetto Spostato: %sx %s | Da: %s | A: %s",
+      DiscordStealItem = "🛍️ Oggetto Rubato: %sx %s | Ladro: %s | Vittima: %s",
+      DiscordMoveWeapon = "🔫 Arma Spostata: %s | Da: %s | A: %s",
+      DiscordStealWeapon = "🔫 Arma Rubata: %s | Ladro: %s | Vittima: %s",
+      DiscordStealLimit = "⚠️ Limite di Furto Raggiunto: %s | Ladro: %s | Limite: %s",
+    }
   }
 }
