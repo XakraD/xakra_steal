@@ -1,17 +1,8 @@
 local StealPrompt = {}
 
-local steal_source
 local active_menu = false
 
-local VorpCore = {}
-
-local stealing_players = {}
-
-local T = Translation.Langs[Config.Lang]
-
-TriggerEvent('getCore', function(core)
-    VorpCore = core
-end)
+local VORPcore = exports.vorp_core:GetCore()
 
 TriggerEvent("menuapi:getData", function(call)
     MenuData = call
@@ -19,99 +10,95 @@ end)
 
 function StealPlayerPrompt(entity)
     local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
-    local str1 = T.StrPrompt
     StealPrompt[entity] = PromptRegisterBegin()
     PromptSetControlAction(StealPrompt[entity], Config.KeySteal)
-    str = CreateVarString(10, 'LITERAL_STRING', str1)
-    PromptSetText(StealPrompt[entity], str)
+    local VarString = CreateVarString(10, 'LITERAL_STRING', T.StrPrompt)
+    PromptSetText(StealPrompt[entity], VarString)
     PromptSetEnabled(StealPrompt[entity], true)
     PromptSetVisible(StealPrompt[entity], true)
-    PromptSetHoldMode(StealPrompt[entity], true)
+    PromptSetHoldMode(StealPrompt[entity], 1000)
     PromptSetGroup(StealPrompt[entity], group)
     PromptRegisterEnd(StealPrompt[entity])
 end
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
-        Wait(100)
-        local data_steal = GetNearbyPlayer()
-        for _, steal in pairs(data_steal) do
-            if steal.steal_source ~= 0 and steal.steal_enable then
-                if not StealPrompt[steal.steal_ped] then
-                    StealPlayerPrompt(steal.steal_ped)
+        local t = 500
+
+        for _, v in pairs(GetNearbyPlayer()) do
+            if not active_menu and v.source ~= 0 and v.enable and not Player(v.source).state.Stealing then
+                t = 0
+
+                if not StealPrompt[v.ped] then
+                    StealPlayerPrompt(v.ped)
                 end
 
-                if PromptHasHoldModeCompleted(StealPrompt[steal.steal_ped]) then
+                if PromptHasHoldModeCompleted(StealPrompt[v.ped]) then
+                    TriggerServerEvent('xakra_steal:OpenMenu', v)
                     Wait(500)
-                    steal_source = steal.steal_source
-                    TriggerServerEvent('xakra_steal:MoneyOpenMenu', steal.steal_source)
                 end
-            elseif active_menu and steal_source == steal.steal_source then
+
+            elseif active_menu and not v.enable and LocalPlayer.state.DataSteal and LocalPlayer.state.DataSteal.source == v.source then
+                TriggerServerEvent('xakra_steal:Stealing', LocalPlayer.state.DataSteal.source, false)
+                LocalPlayer.state:set('DataSteal', nil, true)
+
                 ClearPedTasks(PlayerPedId())
                 TriggerServerEvent('xakra_steal:CloseInventory')
                 active_menu = false
                 MenuData.CloseAll()
             end
         end
+
+        Wait(t)
     end
 end)
 
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        if (IsControlJustPressed(0, Config.HandsUpButton)) and IsInputDisabled(0) then
-            local ped = PlayerPedId()
-            if (DoesEntityExist(ped) and not IsEntityDead(ped)) then
-                RequestAnimDict("script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs")
-                while (not HasAnimDictLoaded("script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs")) do
-                    Citizen.Wait(100)
-                end
-                if IsEntityPlayingAnim(ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs", "handsup_register_owner", 3) then
-                    SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true) -- unarm player
-                    DisablePlayerFiring(ped, true)
-                    ClearPedSecondaryTask(ped)
-                else
-                    SetCurrentPedWeapon(ped, GetHashKey('WEAPON_UNARMED'), true) -- unarm player
-                    DisablePlayerFiring(ped, true)
-                    TaskPlayAnim(ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs", "handsup_register_owner", 2.0, -1.0, 120000, 31, 0, true, 0, false, 0, false)
-                end
+CreateThread(function()
+    while Config.HandsUpButton do
+        Wait(0)
+
+        if IsControlJustPressed(0, Config.HandsUpButton) and IsInputDisabled(0) and not IsEntityDead(PlayerPedId()) then
+            local AnimDict, AnimName = 'script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs', 'handsup_register_owner'
+
+            if IsEntityPlayingAnim(PlayerPedId(), AnimDict, AnimName, 3) then
+                SetCurrentPedWeapon(PlayerPedId(), joaat('WEAPON_UNARMED'), true)
+                DisablePlayerFiring(PlayerPedId(), true)
+                ClearPedSecondaryTask(PlayerPedId())
+
+            else
+                SetCurrentPedWeapon(PlayerPedId(), joaat('WEAPON_UNARMED'), true)
+                DisablePlayerFiring(PlayerPedId(), true)
+
+                if not HasAnimDictLoaded(AnimDict) then
+                    RequestAnimDict(AnimDict)
+    
+                    while not HasAnimDictLoaded(AnimDict) do
+                        Wait(0)
+                    end
+                end    
+
+                TaskPlayAnim(PlayerPedId(), AnimDict, AnimName, 2.0, -1.0, -1, 31, 0, true, 0, false, 0, false)
+
+                RemoveAnimDict(AnimDict)
             end
-        end
-    end
-end)
-
-
-RegisterNetEvent('xakra_steal:StealingPlayers')
-AddEventHandler('xakra_steal:StealingPlayers', function(source)
-    if source ~= steal_source then
-        table.insert(stealing_players, source)
-    end
-end)
-
-RegisterNetEvent('xakra_steal:DelStealingPlayers')
-AddEventHandler('xakra_steal:DelStealingPlayers', function(source)
-    for i, player_id in pairs(stealing_players) do
-        if player_id == source then
-            table.remove(stealing_players, i)
+            
         end
     end
 end)
 
 RegisterNetEvent('xakra_steal:OpenMenu')
-AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
+AddEventHandler('xakra_steal:OpenMenu', function(CharacterMoney)
     MenuData.CloseAll()
 
-    if scenario then
-        ClearPedTasksImmediately(PlayerPedId())
-        SetCurrentPedWeapon(PlayerPedId(), joaat('WEAPON_UNARMED'), true, 0, false, false)
-        TaskStartScenarioInPlace(PlayerPedId(), GetHashKey("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
-    end
+    ClearPedTasksImmediately(PlayerPedId())
+    SetCurrentPedWeapon(PlayerPedId(), joaat('WEAPON_UNARMED'), true, 0, false, false)
+    TaskStartScenarioInPlace(PlayerPedId(), joaat("WORLD_HUMAN_CROUCH_INSPECT"), 0, true, false, false, false)
 
     active_menu = true
 
     local elements = {
         {
-            label = T.Money .. ' [' .. money .. '$]',
+            label = T.Money .. ': ' .. CharacterMoney .. '$',
             value = 'money',
             desc = T.DescStealMoney
         },
@@ -122,14 +109,18 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
         },
     }
 
-    MenuData.Open('default', GetCurrentResourceName(), 'menuapi', {
+    MenuData.Open('default', GetCurrentResourceName(), 'StealMenu', {
         title = T.MenuTitle,
         subtext = T.MenuSubtext,
         align = Config.Align,
-        elements = elements
+        elements = elements,
 
     }, function(data, menu)
-        if (data.current.value == 'money') then                                      --translate here same as the config
+        if not LocalPlayer.state.DataSteal then
+            return
+        end
+
+        if data.current.value == 'money' then                                      --translate here same as the config
             local myInput = {
                 type = 'enableinput',                                                -- dont touch
                 inputType = 'input',                                                 -- or text area for sending messages
@@ -147,36 +138,32 @@ AddEventHandler('xakra_steal:OpenMenu', function(money, scenario)
 
             TriggerEvent('vorpinputs:advancedInput', json.encode(myInput), function(result)
                 local number = tonumber(result)
-                if number and number <= money then
-                    TriggerServerEvent('xakra_steal:StealMoney', steal_source, number)
-                    MenuData.CloseAll()
+
+                if number and number <= CharacterMoney then
+                    TriggerServerEvent('xakra_steal:StealMoney', LocalPlayer.state.DataSteal.source, number)
+
+                    CharacterMoney = CharacterMoney - number
+                    menu.setElement(1, 'label', T.Money .. ': ' .. CharacterMoney .. '$')
+                    menu.refresh()
+                    
                 else
-                    VorpCore.NotifyObjective(T.TooMuchMoney, 4000)
+                    VORPcore.NotifyObjective(T.TooMuchMoney, 4000)
                 end
             end)
         end
 
-        if (data.current.value == 'inventory') then
-            TriggerServerEvent('xakra_steal:ReloadInventory', steal_source)
-            TriggerServerEvent('xakra_steal:OpenInventory', steal_source)
-            Wait(500)
+        if data.current.value == 'inventory' then
+            TriggerServerEvent('xakra_steal:ReloadInventory', LocalPlayer.state.DataSteal.source)
+            TriggerServerEvent('xakra_steal:OpenInventory', LocalPlayer.state.DataSteal.source)
         end
-    end, function(data, menu)
-        menu.close()
-        active_menu = false
-        ClearPedTasks(PlayerPedId())
-        TriggerServerEvent('xakra_steal:CallDelStealingPlayers', steal_source)
-        steal_source = nil
-    end)
-end)
 
-RegisterNetEvent('xakra_steal:GetSourceSteal')
-AddEventHandler('xakra_steal:GetSourceSteal', function(obj, option)
-    if option == 'move' and steal_source then
-        TriggerServerEvent('xakra_steal:MoveTosteal', obj, steal_source)
-    elseif option == 'take' and steal_source then
-        TriggerServerEvent('xakra_steal:TakeFromsteal', obj, steal_source)
-    end
+    end, function(data, menu)
+        TriggerServerEvent('xakra_steal:Stealing', LocalPlayer.state.DataSteal.source, false)
+        LocalPlayer.state:set('DataSteal', nil, true)
+        ClearPedTasks(PlayerPedId())
+        active_menu = false
+        menu.close()
+    end)
 end)
 
 function GetNearbyPlayer()
@@ -185,57 +172,42 @@ function GetNearbyPlayer()
     local data_steal = {}
 
     for _, id in pairs(GetActivePlayers()) do
-        local steal_enable = false
-        local steal_source = GetPlayerServerId(id)
-        local steal_ped = GetPlayerPed(id)
+        local enable = false
+        local source = GetPlayerServerId(id)
+        local ped = GetPlayerPed(id)
 
-        local already_stealing = false
-        for i, source in pairs(stealing_players) do
-            if source == steal_source then
-                already_stealing = true
-            end
-        end
-
-        if steal_ped ~= PlayerPedId() and not already_stealing then
-            local player_coords = GetEntityCoords(steal_ped)
-            local dist = GetDistanceBetweenCoords(pcoords, player_coords, 1)
-
-            if Config.StealHogtied and dist < 2.5 and not IsEntityDead(steal_ped) then
-                if Citizen.InvokeNative(0x3AA24CCC0D451379, steal_ped) and not Citizen.InvokeNative(0xD453BB601D4A606E, steal_ped) then
-                    steal_enable = true
-                end
-            end
-            if Config.Cuffed and dist < 2.5 and not IsEntityDead(steal_ped) then
-                if IsPedCuffed(steal_ped) then
-                    steal_enable = true
-                end
-            end
-            if Config.StealDead and dist < 2.5 then
-                if IsEntityDead(steal_ped) then
-                    steal_enable = true
-                end
+        if ped ~= PlayerPedId() and DoesEntityExist(ped) and GetDistanceBetweenCoords(pcoords, GetEntityCoords(ped), true) <= 2.5 then
+            if Config.StealHogtied and not IsEntityDead(ped) and IsPedHogtied(ped) == 1 and IsPedBeingHogtied(ped) == 0 then
+                enable = true
             end
 
-            -- Verifica se o personagem está com as mãos levantadas
-            local isHandsUp = IsEntityPlayingAnim(steal_ped, "script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs",
-                "handsup_register_owner", 3)
+            if Config.Cuffed and not IsEntityDead(ped) and IsPedCuffed(ped) then
+                enable = true
+            end
 
-            if Config.StealHandsUp and dist < 2.5 and not IsEntityDead(steal_ped) and isHandsUp then
-                steal_enable = true
+            if Config.StealDead and IsEntityDead(ped) then
+                enable = true
+            end
+
+            local isHandsUp = IsEntityPlayingAnim(ped, 'script_proc@robberies@shop@rhodes@gunsmith@inside_upstairs', 'handsup_register_owner', 3)
+
+            if Config.StealHandsUp and not IsEntityDead(ped) and isHandsUp then
+                enable = true
             end
         end
 
         data_steal[#data_steal + 1] = {
-            steal_enable = steal_enable,
-            steal_source = steal_source,
-            steal_ped = steal_ped,
+            enable = enable,
+            source = source,
+            ped = ped,
         }
 
-        if not steal_enable and StealPrompt[steal_ped] then
-            Citizen.InvokeNative(0x00EDE88D4D13CF59, StealPrompt[steal_ped]) -- UiPromptDelete
-            StealPrompt[steal_ped] = nil
+        if not enable and StealPrompt[ped] then
+            PromptDelete(StealPrompt[ped])
+            StealPrompt[ped] = nil
         end
     end
+
     return data_steal
 end
 
@@ -245,12 +217,24 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 
     for _, v in pairs(StealPrompt) do
-        Citizen.InvokeNative(0x00EDE88D4D13CF59, v) -- UiPromptDelete
+        PromptDelete(v)
     end
 
-    MenuData.CloseAll()
+    if LocalPlayer.state.DataSteal then
+        LocalPlayer.state:set('DataSteal', nil, true)
+    end
 
-    if IsPedActiveInScenario(PlayerPedId()) then
-        ClearPedTasksImmediately(PlayerPedId())
+    if LocalPlayer.state.Stealing then
+        LocalPlayer.state:set('Stealing', nil, true)
+    end
+
+    if active_menu then
+        MenuData.CloseAll()
+
+        if IsPedActiveInScenario(PlayerPedId()) then
+            ClearPedTasksImmediately(PlayerPedId())
+        end
+
+        TriggerServerEvent('xakra_steal:CloseInventory')
     end
 end)

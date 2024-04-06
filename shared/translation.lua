@@ -164,3 +164,5 @@ Translation.Langs = {
     }
   }
 }
+
+T = Translation.Langs[Config.Lang]

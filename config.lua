@@ -8,7 +8,7 @@ Config.Lang = 'English'
 
 -- Keybindings
 Config.KeySteal = 0xA1ABB953      -- Key binding for steal action [G]
-Config.HandsUpButton = 0x8CC9CD42 -- Key binding for hands up [X]
+Config.HandsUpButton = 0x8CC9CD42 -- Key binding for hands up [X] or false
 
 -- Stealing conditions
 Config.StealHogtied = true -- Allow stealing from hogtied players
@@ -32,7 +32,8 @@ Config.Webhook = {
 Config.RequiredJobs = {
     Amount = 2,  -- Minimum number of police required
     Jobs = {
-        'police' -- Job identifier for police
+        'police', -- Job identifier for police
+        -- 'example',
     },
 }
 
