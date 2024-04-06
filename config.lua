@@ -10,6 +10,8 @@ Config.Lang = 'English'
 Config.KeySteal = 0xA1ABB953      -- Key binding for steal action [G]
 Config.HandsUpButton = 0x8CC9CD42 -- Key binding for hands up [X] or false
 
+Config.DisableSuicidePrompt = true -- Disable suicide prompt when player is lassoed
+
 -- Stealing conditions
 Config.StealHogtied = true -- Allow stealing from hogtied players
 Config.Cuffed = true       -- Allow stealing from handcuffed players

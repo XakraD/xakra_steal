@@ -81,8 +81,20 @@ CreateThread(function()
 
                 RemoveAnimDict(AnimDict)
             end
-            
         end
+    end
+end)
+
+CreateThread(function()
+    while Config.DisableSuicidePrompt do
+        local t = 500
+
+        if IsPedHogtied(PlayerPedId()) == 1 then
+            t = 0
+            DisableControlAction(0, joaat('INPUT_CARRIABLE_SUICIDE'), true)
+        end
+
+        Wait(t)
     end
 end)
 
