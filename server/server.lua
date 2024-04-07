@@ -7,7 +7,7 @@ AddEventHandler('xakra_steal:OpenMenu', function(data)
     local Amount = 0
 
     for _, player in pairs(GetPlayers()) do
-        local CharacterJob = Player(player).state.Character.Job
+        local CharacterJob = Player(player).state.Character and Player(player).state.Character.Job
 
         for _, job in pairs(Config.RequiredJobs.Jobs) do
             if CharacterJob == job then
