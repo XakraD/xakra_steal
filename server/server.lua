@@ -113,7 +113,7 @@ AddEventHandler('syn_search:MoveTosteal', function(obj)
         end
 
     elseif decode_obj.type == 'item_weapon' then
-        local canCarry = exports.vorp_inventory:canCarryWeapons(steal_source, 1)
+        local canCarry = exports.vorp_inventory:canCarryWeapons(steal_source, 1, nil, decode_obj.item.name)
         if canCarry then
             -- exports.vorp_inventory:subWeapon(_source, decode_obj.item.id)
             exports.vorp_inventory:giveWeapon(steal_source, decode_obj.item.id, _source)
@@ -169,7 +169,7 @@ AddEventHandler('syn_search:TakeFromsteal', function(obj)
             return
         end
 
-        local canCarry = exports.vorp_inventory:canCarryWeapons(_source, 1)
+        local canCarry = exports.vorp_inventory:canCarryWeapons(_source, 1, nil, decode_obj.item.name)
         if canCarry then
             -- exports.vorp_inventory:subWeapon(steal_source, decode_obj.item.id)
             exports.vorp_inventory:giveWeapon(_source, decode_obj.item.id, steal_source)
