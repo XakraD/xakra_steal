@@ -83,9 +83,33 @@ AddEventHandler('xakra_steal:OpenInventory', function(steal_source)
     local _source = source
     local Character = VORPcore.getUser(steal_source).getUsedCharacter
 
+    exports.vorp_inventory:closeInventory(steal_source)
+
     TriggerClientEvent('vorp_inventory:OpenstealInventory', _source, T.MenuTitle, Character.charIdentifier)
 
-    exports.vorp_inventory:closeInventory(steal_source)
+    -- Config.itemsLimit = { -- OPTIONAL
+    --     weapons = { itemType = "item_weapon", limit = 1 }, -- how many weapons user is allowed to take
+    --     items = { itemType = "item_standard", limit = 2 }, -- how many items user is allowed to take
+    -- }
+
+    -- Config.timeout = 60 -- OPTIONAL in seconds , if enabled when user reaches limits then a timeout is applied so player cant steal for that amount of time if removed then   once limit reached only after restart they can steal again
+
+    -- local _blacklist = {}
+
+    -- for i, v in pairs(Config.ItemsBlackList) do
+    --     _blacklist[v] = true
+    -- end
+
+    -- local data = {
+    --     source = _source, 
+    --     target = steal_source, 
+    --     title = T.MenuTitle,
+    --     blacklist = _blacklist,
+    --     itemsLimit = Config.itemsLimit,
+    --     timeout = Config.timeout,
+    -- }
+
+    -- exports.vorp_inventory:openPlayerInventory(data)
 end)
 
 RegisterServerEvent('syn_search:MoveTosteal')
