@@ -84,6 +84,8 @@ AddEventHandler('xakra_steal:OpenInventory', function(steal_source)
     local Character = VORPcore.getUser(steal_source).getUsedCharacter
 
     TriggerClientEvent('vorp_inventory:OpenstealInventory', _source, T.MenuTitle, Character.charIdentifier)
+
+    exports.vorp_inventory:closeInventory(steal_source)
 end)
 
 RegisterServerEvent('syn_search:MoveTosteal')
@@ -183,7 +185,7 @@ AddEventHandler('syn_search:TakeFromsteal', function(obj)
 end)
 
 RegisterServerEvent('xakra_steal:CloseInventory')
-AddEventHandler('xakra_steal:CloseInventory', function(steal_source)
+AddEventHandler('xakra_steal:CloseInventory', function()
     local _source = source
     exports.vorp_inventory:closeInventory(_source)
 end)

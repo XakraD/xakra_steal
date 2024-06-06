@@ -9,7 +9,7 @@ TriggerEvent("menuapi:getData", function(call)
 end)
 
 function StealPlayerPrompt(entity)
-    local group = Citizen.InvokeNative(0xB796970BD125FCE8, entity, Citizen.ResultAsLong()) -- PromptGetGroupIdForTargetEntity
+    local group = PromptGetGroupIdForTargetEntity(entity, Citizen.ResultAsLong())
     StealPrompt[entity] = PromptRegisterBegin()
     PromptSetControlAction(StealPrompt[entity], Config.KeySteal)
     local VarString = CreateVarString(10, 'LITERAL_STRING', T.StrPrompt)
