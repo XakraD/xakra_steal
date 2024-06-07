@@ -24,6 +24,8 @@ AddEventHandler('xakra_steal:OpenMenu', function(data)
 
     Player(_source).state:set('DataSteal', data, true)
 
+    exports.vorp_inventory:closeInventory(data.source)
+
     Player(data.source).state:set('Stealing', true, true)
     local Character = VORPcore.getUser(data.source).getUsedCharacter
     TriggerClientEvent('xakra_steal:OpenMenu', _source, Character.money)
@@ -82,8 +84,6 @@ RegisterServerEvent('xakra_steal:OpenInventory')
 AddEventHandler('xakra_steal:OpenInventory', function(steal_source)
     local _source = source
     local Character = VORPcore.getUser(steal_source).getUsedCharacter
-
-    exports.vorp_inventory:closeInventory(steal_source)
 
     TriggerClientEvent('vorp_inventory:OpenstealInventory', _source, T.MenuTitle, Character.charIdentifier)
 
