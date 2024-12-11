@@ -9,21 +9,23 @@ TriggerEvent("menuapi:getData", function(call)
 end)
 
 function StealPlayerPrompt(entity)
-    local group = PromptGetGroupIdForTargetEntity(entity, Citizen.ResultAsLong())
-    StealPrompt[entity] = PromptRegisterBegin()
-    PromptSetControlAction(StealPrompt[entity], Config.KeySteal)
+    local group = UiPromptGetGroupIdForTargetEntity(entity, Citizen.ResultAsLong())
+    StealPrompt[entity] = UiPromptRegisterBegin()
+    UiPromptSetControlAction(StealPrompt[entity], Config.KeySteal)
     local VarString = CreateVarString(10, 'LITERAL_STRING', T.StrPrompt)
-    PromptSetText(StealPrompt[entity], VarString)
-    PromptSetEnabled(StealPrompt[entity], true)
-    PromptSetVisible(StealPrompt[entity], true)
-    PromptSetHoldMode(StealPrompt[entity], 1000)
-    PromptSetGroup(StealPrompt[entity], group)
-    PromptRegisterEnd(StealPrompt[entity])
+    UiPromptSetText(StealPrompt[entity], VarString)
+    UiPromptSetEnabled(StealPrompt[entity], true)
+    UiPromptSetVisible(StealPrompt[entity], true)
+    UiPromptSetHoldMode(StealPrompt[entity], 1000)
+    UiPromptSetGroup(StealPrompt[entity], group)
+    UiPromptRegisterEnd(StealPrompt[entity])
 end
 
 CreateThread(function()
     while true do
         local t = 500
+
+        local DataSteal = LocalPlayer.state.DataSteal
 
         for _, v in pairs(GetNearbyPlayer()) do
             if not active_menu and v.source ~= 0 and v.enable and not Player(v.source).state.Stealing then
@@ -38,20 +40,32 @@ CreateThread(function()
                     Wait(500)
                 end
 
-            elseif active_menu and not v.enable and LocalPlayer.state.DataSteal and LocalPlayer.state.DataSteal.source == v.source then
-                TriggerServerEvent('xakra_steal:Stealing', LocalPlayer.state.DataSteal.source, false)
-                LocalPlayer.state:set('DataSteal', nil, true)
-
-                ClearPedTasks(PlayerPedId())
-                TriggerServerEvent('xakra_steal:CloseInventory')
-                active_menu = false
-                MenuData.CloseAll()
+            elseif active_menu and not v.enable and DataSteal and DataSteal.source == v.source then
+                CloseStealMenu()
             end
+        end
+
+        if active_menu and DataSteal and not DoesEntityExist(DataSteal.ped) then
+            CloseStealMenu()
         end
 
         Wait(t)
     end
 end)
+
+function CloseStealMenu()
+    if LocalPlayer.state.DataSteal then
+        TriggerServerEvent('xakra_steal:Stealing', LocalPlayer.state.DataSteal.source, false)
+        LocalPlayer.state:set('DataSteal', nil, true)
+    end
+
+    ClearPedTasks(PlayerPedId())
+
+    TriggerServerEvent('xakra_steal:CloseInventory')
+    
+    active_menu = false
+    MenuData.CloseAll()
+end
 
 CreateThread(function()
     while Config.HandsUpButton do
@@ -229,7 +243,7 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 
     for _, v in pairs(StealPrompt) do
-        PromptDelete(v)
+        UiPromptDelete(v)
     end
 
     if LocalPlayer.state.DataSteal then
