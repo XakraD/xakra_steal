@@ -25,6 +25,10 @@ CreateThread(function()
     while true do
         local t = 500
 
+        if LocalPlayer.state.Stealing and LocalPlayer.state.IsInvActive then
+            TriggerServerEvent('xakra_steal:CloseInventory')
+        end
+
         local DataSteal = LocalPlayer.state.DataSteal
 
         for _, v in pairs(GetNearbyPlayer()) do
