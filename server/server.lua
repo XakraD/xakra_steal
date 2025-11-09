@@ -190,7 +190,7 @@ AddEventHandler('syn_search:TakeFromsteal', function(obj)
             VORPcore.NotifyObjective(_source, T.NotCarryItems, 4000)
         end
 
-    elseif decode_obj.type == 'item_weapon' and not inblacklist and decode_obj.type == 'item_weapon' and not inblacklist then
+    elseif decode_obj.type == 'item_weapon' and not inblacklist then
         if not CheckLimit(_source, steal_source, 'Weapons', 1) then
             return
         end
