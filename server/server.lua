@@ -129,10 +129,8 @@ AddEventHandler('syn_search:MoveTosteal', function(obj)
         local canCarrys = exports.vorp_inventory:canCarryItems(steal_source, decode_obj.number)
         local canCarry = exports.vorp_inventory:canCarryItem(steal_source, decode_obj.item.name, decode_obj.number)
         if canCarrys and canCarry then
-            
-            -- exports.vorp_inventory:subItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata, nil, true, decode_obj.item.degradation, decode_obj.item.percentage)
-            exports.vorp_inventory:subItemById(_source, decode_obj.item.mainid, nil, nil, decode_obj.number)
-            exports.vorp_inventory:addItem(steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata, nil, true, decode_obj.item.degradation, decode_obj.item.percentage)
+            exports.vorp_inventory:subItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
+            exports.vorp_inventory:addItem(steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', steal_source, _source)
             DiscordLog(string.format(T.WebhooksLang.DiscordMoveItem, decode_obj.number, decode_obj.item.label, GetPlayerName(_source), GetPlayerName(steal_source)))
@@ -183,9 +181,8 @@ AddEventHandler('syn_search:TakeFromsteal', function(obj)
         local canCarrys = exports.vorp_inventory:canCarryItems(_source, decode_obj.number)
         local canCarry = exports.vorp_inventory:canCarryItem(_source, decode_obj.item.name, decode_obj.number)
         if canCarrys and canCarry then
-            -- exports.vorp_inventory:subItem(steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata, nil, true, decode_obj.item.degradation, decode_obj.item.percentage)
-            exports.vorp_inventory:subItemById(steal_source, decode_obj.item.mainid, nil, nil, decode_obj.number)
-            exports.vorp_inventory:addItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata, nil, true, decode_obj.item.degradation, decode_obj.item.percentage)
+            exports.vorp_inventory:subItem(steal_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
+            exports.vorp_inventory:addItem(_source, decode_obj.item.name, decode_obj.number, decode_obj.item.metadata)
             Wait(100)
             TriggerEvent('xakra_steal:ReloadInventory', steal_source, _source)
             DiscordLog(string.format(T.WebhooksLang.DiscordStealItem, decode_obj.number, decode_obj.item.label, GetPlayerName(_source), GetPlayerName(steal_source)))
@@ -193,7 +190,7 @@ AddEventHandler('syn_search:TakeFromsteal', function(obj)
             VORPcore.NotifyObjective(_source, T.NotCarryItems, 4000)
         end
 
-    elseif decode_obj.type == 'item_weapon' and not inblacklist then
+    elseif decode_obj.type == 'item_weapon' and not inblacklist and decode_obj.type == 'item_weapon' and not inblacklist then
         if not CheckLimit(_source, steal_source, 'Weapons', 1) then
             return
         end
